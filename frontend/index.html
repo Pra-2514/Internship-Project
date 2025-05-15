@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Schedule Manager</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #1e1e2f;
+        color: #eee;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        overflow: hidden;
+      }
+
+      .calendar-container {
+        height: 100vh;
+        overflow-y: auto;
+        background: linear-gradient(135deg, #3a3a66, #1e1e2f);
+        width: 100%;
+        max-width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .calendar-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      select {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: none;
+        font-size: 1rem;
+        background: #444466;
+        color: #eee;
+        cursor: pointer;
+      }
+
+      .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
+      }
+
+      @media (max-width: 1000px) {
+        .calendar {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .calendar {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .day-name {
+        text-align: center;
+        font-weight: 600;
+        padding: 6px 0;
+        border-bottom: 2px solid #555577;
+      }
+
+      .date-box {
+        background: #2e2e4a;
+        border-radius: 10px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        transition: 0.3s ease;
+        cursor: pointer;
+      }
+
+      .date-box:hover {
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+      }
+
+      .date-number {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: #ffcc33;
+      }
+
+      .input-group {
+        margin-bottom: 6px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      label {
+        font-size: 0.75rem;
+        margin-bottom: 3px;
+        color: #aaaabb;
+      }
+
+      input[type="text"],
+      input[type="time"] {
+        border: none;
+        border-radius: 6px;
+        padding: 5px 8px;
+        font-size: 0.9rem;
+        background: #444466;
+        color: #eee;
+      }
+
+      button.submit-btn {
+        margin-top: auto;
+        padding: 6px;
+        background: #ffcc33;
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+        color: #1e1e2f;
+        cursor: pointer;
+        transition: background-color 0.25s ease;
+      }
+
+      button.submit-btn:hover {
+        background-color: #ddb820;
+      }
+
+      .today {
+        background-color: #ff6b6b !important;
+        color: white;
+        border: 2px solid white;
+      }
+
+      /* Enlarged card for mobile interaction */
+      @media (max-width: 720px) {
+        .date-box.enlarged {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 1000;
+          width: 90vw;
+          max-width: 400px;
+          background: #3a3a66;
+          border-radius: 12px;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+          overflow-y: auto;
+          max-height: 90vh;
+          padding: 12px;
+        }
+
+        .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          z-index: 999;
+          display: none;
+        }
+
+        .overlay.active {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calendar-container">
+      <div class="header">
+        <select id="monthSelect"></select>
+        <select id="yearSelect"></select>
+      </div>
+      <div class="calendar" id="calendar"></div>
+    </div>
+    <div class="overlay" id="overlay"></div>
+
+    <script>
+      const calendarEl = document.getElementById("calendar");
+      const monthSelect = document.getElementById("monthSelect");
+      const yearSelect = document.getElementById("yearSelect");
+      const overlay = document.getElementById("overlay");
+
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      const today = new Date();
+      let selectedYear = today.getFullYear();
+      let selectedMonth = today.getMonth();
+
+      function populateSelectors() {
+        monthSelect.innerHTML = "";
+        yearSelect.innerHTML = "";
+
+        monthNames.forEach((m, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = m;
+          if (i === selectedMonth) opt.selected = true;
+          monthSelect.appendChild(opt);
+        });
+
+        for (let y = selectedYear - 10; y <= selectedYear + 10; y++) {
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.textContent = y;
+          if (y === selectedYear) opt.selected = true;
+          yearSelect.appendChild(opt);
+        }
+      }
+
+      function renderCalendar() {
+        calendarEl.innerHTML = "";
+
+        dayNames.forEach((d) => {
+          const nameBox = document.createElement("div");
+          nameBox.className = "day-name";
+          nameBox.textContent = d;
+          calendarEl.appendChild(nameBox);
+        });
+
+        const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
+        const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) {
+          const empty = document.createElement("div");
+          empty.className = "date-box";
+          calendarEl.appendChild(empty);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const box = document.createElement("div");
+          box.className = "date-box";
+
+          const isToday =
+            d === today.getDate() &&
+            selectedMonth === today.getMonth() &&
+            selectedYear === today.getFullYear();
+          if (isToday) box.classList.add("today");
+
+          const number = document.createElement("div");
+          number.className = "date-number";
+          number.textContent = d;
+          box.appendChild(number);
+
+          const createInput = (labelText, type, placeholder = "") => {
+            const group = document.createElement("div");
+            group.className = "input-group";
+
+            const label = document.createElement("label");
+            label.textContent = labelText;
+            const input = document.createElement("input");
+            input.type = type;
+            if (placeholder) input.placeholder = placeholder;
+
+            group.appendChild(label);
+            group.appendChild(input);
+            return { group, input };
+          };
+
+          const doc = createInput("Doctor", "text", "Name");
+          const topic = createInput("Topic", "text", "Topic");
+          const start = createInput("Start", "time");
+          const end = createInput("End", "time");
+
+          [doc.group, topic.group, start.group, end.group].forEach((el) =>
+            box.appendChild(el)
+          );
+
+          const btn = document.createElement("button");
+          btn.className = "submit-btn";
+          btn.textContent = "Submit";
+
+          btn.onclick = async () => {
+            const payload = {
+              doctor: doc.input.value.trim(),
+              topic: topic.input.value.trim(),
+              start: start.input.value,
+              end: end.input.value,
+              date: `${selectedYear}-${(selectedMonth + 1)
+                .toString()
+                .padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
+            };
+            if (!payload.doctor || !payload.topic || !payload.start || !payload.end) {
+              alert("Please fill all fields.");
+              return;
+            }
+
+            try {
+              const res = await fetch("http://localhost:3000/api/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+              const data = await res.json();
+              alert(data.success ? "Saved!" : "Save failed.");
+            } catch (err) {
+              alert("Server error.");
+            }
+          };
+
+          box.appendChild(btn);
+          calendarEl.appendChild(box);
+        }
+      }
+
+      function setupPopup() {
+        let activeBox = null;
+        calendarEl.addEventListener("click", (e) => {
+          if (window.innerWidth > 720) return;
+          const box = e.target.closest(".date-box");
+          if (!box || box.querySelector(".day-name")) return;
+
+          if (activeBox) activeBox.classList.remove("enlarged");
+          activeBox = box;
+          activeBox.classList.add("enlarged");
+          overlay.classList.add("active");
+        });
+
+        overlay.addEventListener("click", () => {
+          if (activeBox) activeBox.classList.remove("enlarged");
+          activeBox = null;
+          overlay.classList.remove("active");
+        });
+      }
+
+      monthSelect.addEventListener("change", (e) => {
+        selectedMonth = parseInt(e.target.value);
+        renderCalendar();
+      });
+
+      yearSelect.addEventListener("change", (e) => {
+        selectedYear = parseInt(e.target.value);
+        renderCalendar();
+      });
+
+      populateSelectors();
+      renderCalendar();
+      setupPopup();
+    </script>
+  </body>
+</html>

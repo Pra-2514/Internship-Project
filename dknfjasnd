@@ -1,0 +1,46 @@
+[33mcommit bd871d561b5145eda2a0b137ec48c620a40f83c2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Merge: b584351 bb77f1b
+Author: Yash Ghavghave <yashghavghave79@gmail.com>
+Date:   Thu May 15 21:13:11 2025 +0530
+
+    Merge branch 'main' of https://github.com/YashGhavghave/Internship-Project
+
+[33mcommit b584351bbe5f1aa3531b472c00b77681d2994811[m
+Author: Yash Ghavghave <yashghavghave79@gmail.com>
+Date:   Thu May 15 21:10:25 2025 +0530
+
+    Calender was updated
+
+[33mcommit bb77f1ba4dfe9316453af2e83d527d6f0babe5ca[m
+Merge: b97dbc8 9f8d212
+Author: Yash_G.G <157970758+YashGhavghave@users.noreply.github.com>
+Date:   Thu May 15 16:08:13 2025 +0530
+
+    Merge branch 'Pra-2514:main' into main
+
+[33mcommit b97dbc873b5f882571fa3dd65475074dc0370b02[m
+Author: YashGhavghave <157970758+YashGhavghave@users.noreply.github.com>
+Date:   Thu May 15 16:05:56 2025 +0530
+
+    ok
+
+[33mcommit 9f8d212b581107f3882aba5b1f5e62f053a0f5d4[m
+Merge: 937e8f8 1995300
+Author: Pra-2514 <pranayghavghave2006@gmail.com>
+Date:   Thu May 15 16:01:11 2025 +0530
+
+    Merge pull request #1 from YashGhavghave/main
+    
+    Index.html file is here
+
+[33mcommit 19953008d0ac2af3d7dbeb952c4b4cf72d9d88f0[m
+Author: YashGhavghave <157970758+YashGhavghave@users.noreply.github.com>
+Date:   Thu May 15 15:51:29 2025 +0530
+
+    Index.html file is here
+
+[33mcommit 937e8f85a09cde084b521288cf4697f19b5d88c3[m[33m ([m[1;31mupstream/main[m[33m, [m[1;31mupstream/HEAD[m[33m)[m
+Author: Pra-2514 <pranayghavghave2006@gmail.com>
+Date:   Thu May 15 15:45:34 2025 +0530
+
+    Initial commit
