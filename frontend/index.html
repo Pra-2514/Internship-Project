@@ -1,228 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Schedule Manager</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      padding: 0;
-      margin: 0;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Responsive Calendar</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #dfe9f3 0%, #ffffff 100%);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #1e1e2f;
+        color: #eee;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        overflow: hidden;
+      }
 
-    .calendar {
-      background: #fff;
-      border-radius: 30px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-      padding: 40px;
-      width: 90%;
-      max-width: 1200px;
-      height: 90%;
-      display: flex;
-      flex-direction: column;
-      animation: fadeIn 0.5s ease;
-    }
+      .calendar-container {
+        height: 100vh;
+        overflow-y: auto;
+        background: linear-gradient(135deg, #3a3a66, #1e1e2f);
+        width: 100%;
+        max-width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
 
-    .header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-    }
+      .calendar-container::-webkit-scrollbar {
+        display: none;
+      }
 
-    .header select, .header button {
-      padding: 10px 20px;
-      font-size: 1.1rem;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
 
-    .header button {
-      background-color: #f0f0f0;
-      transition: background 0.3s;
-    }
+      select {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: none;
+        font-size: 1rem;
+        background: #444466;
+        color: #eee;
+        cursor: pointer;
+      }
 
-    .header button:hover {
-      background-color: #e0e0e0;
-    }
-
-    .days {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-weight: bold;
-      font-size: 1.2rem;
-      color: #555;
-      margin-bottom: 15px;
-    }
-
-    .dates {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .dates div {
-      padding: 20px;
-      border-radius: 15px;
-      transition: background 0.3s, transform 0.2s;
-      cursor: pointer;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-
-    .dates div:hover {
-      background: #e0f7fa;
-      transform: scale(1.05);
-    }
-
-    .today {
-      background: #00bcd4;
-      color: white;
-      font-weight: bold;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 768px) {
       .calendar {
-        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 10px;
       }
 
-      .header select, .header button {
-        font-size: 1rem;
-        padding: 8px 12px;
+      @media (max-width: 1000px) {
+        .calendar {
+          grid-template-columns: repeat(4, 1fr);
+        }
       }
 
-      .days, .dates div {
-        font-size: 1rem;
-      }
-    }
-  </style>
-</head>
-<body>
-
-<div class="calendar">
-  <div class="header">
-    <button id="prev">⟨</button>
-    <select id="monthSelect"></select>
-    <select id="yearSelect"></select>
-    <button id="next">⟩</button>
-  </div>
-  <div class="days">
-    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-  </div>
-  <div class="dates" id="dates"></div>
-</div>
-
-<script>
-  const monthSelect = document.getElementById("monthSelect");
-  const yearSelect = document.getElementById("yearSelect");
-  const dates = document.getElementById("dates");
-  const prevBtn = document.getElementById("prev");
-  const nextBtn = document.getElementById("next");
-
-  const today = new Date();
-  let currentMonth = today.getMonth();
-  let currentYear = today.getFullYear();
-
-  // Fill Month Dropdown
-  const monthNames = Array.from({ length: 12 }, (_, i) =>
-    new Date(0, i).toLocaleString('default', { month: 'long' })
-  );
-  monthNames.forEach((month, i) => {
-    const option = document.createElement("option");
-    option.value = i;
-    option.text = month;
-    monthSelect.appendChild(option);
-  });
-
-  // Fill Year Dropdown
-  for (let y = 1900; y <= 2100; y++) {
-    const option = document.createElement("option");
-    option.value = y;
-    option.text = y;
-    yearSelect.appendChild(option);
-  }
-
-  function renderCalendar(month, year) {
-    const current = new Date();
-    const firstDay = new Date(year, month).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    dates.innerHTML = "";
-    monthSelect.value = month;
-    yearSelect.value = year;
-
-    for (let i = 0; i < firstDay; i++) {
-      const empty = document.createElement("div");
-      dates.appendChild(empty);
-    }
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const day = document.createElement("div");
-      day.textContent = d;
-
-      if (
-        d === current.getDate() &&
-        month === current.getMonth() &&
-        year === current.getFullYear()
-      ) {
-        day.classList.add("today");
+      @media (max-width: 600px) {
+        .calendar {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
 
-      dates.appendChild(day);
-    }
-  }
+      .day-name {
+        text-align: center;
+        font-weight: 600;
+        padding: 6px 0;
+        border-bottom: 2px solid #555577;
+      }
 
-  monthSelect.addEventListener("change", () => {
-    currentMonth = parseInt(monthSelect.value);
-    renderCalendar(currentMonth, currentYear);
-  });
+      .date-box {
+        background: #2e2e4a;
+        border-radius: 10px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        transition: 0.3s ease;
+        cursor: pointer;
+      }
 
-  yearSelect.addEventListener("change", () => {
-    currentYear = parseInt(yearSelect.value);
-    renderCalendar(currentMonth, currentYear);
-  });
+      .date-box:hover {
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+      }
 
-  prevBtn.addEventListener("click", () => {
-    currentMonth--;
-    if (currentMonth < 0) {
-      currentMonth = 11;
-      currentYear--;
-    }
-    renderCalendar(currentMonth, currentYear);
-  });
+      .date-number {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: #ffcc33;
+      }
 
-  nextBtn.addEventListener("click", () => {
-    currentMonth++;
-    if (currentMonth > 11) {
-      currentMonth = 0;
-      currentYear++;
-    }
-    renderCalendar(currentMonth, currentYear);
-  });
+      .input-group {
+        margin-bottom: 6px;
+        display: flex;
+        flex-direction: column;
+      }
 
-  renderCalendar(currentMonth, currentYear);
-</script>
+      label {
+        font-size: 0.75rem;
+        margin-bottom: 3px;
+        color: #aaaabb;
+      }
 
-</body>
+      input[type="text"],
+      input[type="time"] {
+        border: none;
+        border-radius: 6px;
+        padding: 5px 8px;
+        font-size: 0.9rem;
+        background: #444466;
+        color: #eee;
+      }
+
+      button.submit-btn {
+        margin-top: auto;
+        padding: 6px;
+        background: #ffcc33;
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+        color: #1e1e2f;
+        cursor: pointer;
+        transition: background-color 0.25s ease;
+      }
+
+      button.submit-btn:hover {
+        background-color: #ddb820;
+      }
+
+      .today {
+        background-color: #ff6b6b !important;
+        color: white;
+        border: 2px solid white;
+      }
+
+      /* Enlarged card for mobile interaction */
+      @media (max-width: 720px) {
+        .date-box.enlarged {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 1000;
+          width: 90vw;
+          max-width: 400px;
+          background: #3a3a66;
+          border-radius: 12px;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+          overflow-y: auto;
+          max-height: 90vh;
+          padding: 12px;
+        }
+
+        .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          z-index: 999;
+          display: none;
+        }
+
+        .overlay.active {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calendar-container">
+      <div class="header">
+        <select id="monthSelect"></select>
+        <select id="yearSelect"></select>
+      </div>
+      <div class="calendar" id="calendar"></div>
+    </div>
+    <div class="overlay" id="overlay"></div>
+
+    <script>
+      const calendarEl = document.getElementById("calendar");
+      const monthSelect = document.getElementById("monthSelect");
+      const yearSelect = document.getElementById("yearSelect");
+      const overlay = document.getElementById("overlay");
+
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+      const today = new Date();
+      let selectedYear = today.getFullYear();
+      let selectedMonth = today.getMonth();
+
+      function populateSelectors() {
+        monthSelect.innerHTML = "";
+        yearSelect.innerHTML = "";
+
+        monthNames.forEach((m, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = m;
+          if (i === selectedMonth) opt.selected = true;
+          monthSelect.appendChild(opt);
+        });
+
+        for (let y = selectedYear - 10; y <= selectedYear + 10; y++) {
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.textContent = y;
+          if (y === selectedYear) opt.selected = true;
+          yearSelect.appendChild(opt);
+        }
+      }
+
+      function renderCalendar() {
+        calendarEl.innerHTML = "";
+
+        dayNames.forEach((d) => {
+          const nameBox = document.createElement("div");
+          nameBox.className = "day-name";
+          nameBox.textContent = d;
+          calendarEl.appendChild(nameBox);
+        });
+
+        const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
+        const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) {
+          const empty = document.createElement("div");
+          empty.className = "date-box";
+          calendarEl.appendChild(empty);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const box = document.createElement("div");
+          box.className = "date-box";
+
+          const isToday =
+            d === today.getDate() &&
+            selectedMonth === today.getMonth() &&
+            selectedYear === today.getFullYear();
+          if (isToday) box.classList.add("today");
+
+          const number = document.createElement("div");
+          number.className = "date-number";
+          number.textContent = d;
+          box.appendChild(number);
+
+          const createInput = (labelText, type, placeholder = "") => {
+            const group = document.createElement("div");
+            group.className = "input-group";
+
+            const label = document.createElement("label");
+            label.textContent = labelText;
+            const input = document.createElement("input");
+            input.type = type;
+            if (placeholder) input.placeholder = placeholder;
+
+            group.appendChild(label);
+            group.appendChild(input);
+            return { group, input };
+          };
+
+          const doc = createInput("Doctor", "text", "Name");
+          const topic = createInput("Topic", "text", "Topic");
+          const start = createInput("Start", "time");
+          const end = createInput("End", "time");
+
+          [doc.group, topic.group, start.group, end.group].forEach((el) =>
+            box.appendChild(el)
+          );
+
+          const btn = document.createElement("button");
+          btn.className = "submit-btn";
+          btn.textContent = "Submit";
+
+          btn.onclick = async () => {
+            const payload = {
+              doctor: doc.input.value.trim(),
+              topic: topic.input.value.trim(),
+              start: start.input.value,
+              end: end.input.value,
+              date: `${selectedYear}-${(selectedMonth + 1)
+                .toString()
+                .padStart(2, "0")}-${d.toString().padStart(2, "0")}`,
+            };
+            if (!payload.doctor || !payload.topic || !payload.start || !payload.end) {
+              alert("Please fill all fields.");
+              return;
+            }
+
+            try {
+              const res = await fetch("http://localhost:3000/api/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+              const data = await res.json();
+              alert(data.success ? "Saved!" : "Save failed.");
+            } catch (err) {
+              alert("Server error.");
+            }
+          };
+
+          box.appendChild(btn);
+          calendarEl.appendChild(box);
+        }
+      }
+
+      function setupPopup() {
+        let activeBox = null;
+        calendarEl.addEventListener("click", (e) => {
+          if (window.innerWidth > 720) return;
+          const box = e.target.closest(".date-box");
+          if (!box || box.querySelector(".day-name")) return;
+
+          if (activeBox) activeBox.classList.remove("enlarged");
+          activeBox = box;
+          activeBox.classList.add("enlarged");
+          overlay.classList.add("active");
+        });
+
+        overlay.addEventListener("click", () => {
+          if (activeBox) activeBox.classList.remove("enlarged");
+          activeBox = null;
+          overlay.classList.remove("active");
+        });
+      }
+
+      monthSelect.addEventListener("change", (e) => {
+        selectedMonth = parseInt(e.target.value);
+        renderCalendar();
+      });
+
+      yearSelect.addEventListener("change", (e) => {
+        selectedYear = parseInt(e.target.value);
+        renderCalendar();
+      });
+
+      populateSelectors();
+      renderCalendar();
+      setupPopup();
+    </script>
+  </body>
 </html>
