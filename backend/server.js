@@ -25,7 +25,7 @@ function readOrCreateWorkbook() {
     ]);
     XLSX.utils.book_append_sheet(wb, ws, 'Schedule');
     XLSX.writeFile(wb, EXCEL_FILE);
-    return wb;
+    return wb; 
   }
 }
 
